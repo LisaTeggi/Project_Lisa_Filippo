@@ -1,8 +1,9 @@
 # pip install python-telegram-bot  v13
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, RegexHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, RegexHandler, CallbackContext, JobQueue
 from secret import bot_token
 from telegram import KeyboardButton, ReplyKeyboardMarkup, Location
 from datetime import datetime
+import time
 
 data = {}
 
@@ -28,18 +29,18 @@ def process_chat(update, context):
             data[username] = []
             context.user_data['username'] = username
             update.message.reply_text(f"Benvenuto {username}", parse_mode='HTML')
-    # condividi posizione
+    # condivisione della posizione
     elif msg.startswith('share_loc'):
         cmd, username = msg.split(' ')
         if username in data:
-            keyboard = [[KeyboardButton("Condividi posizione", request_location=True)]]
-            reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
-            update.message.reply_text(f"Ok {username}, premi il pulsante sottostante per condividere la posizione",
-                                      reply_markup=reply_markup)
+            # keyboard = [[KeyboardButton("Condividi posizione", request_location=True)]]
+            # reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+            # update.message.reply_text(f"Ok {username}, comincia a condividere la posizione", reply_markup=reply_markup)
+            update.message.reply_text(f"Ok {username}, comincia a condividere la posizione", parse_mode='HTML')
         else:
             update.message.reply_text(f"Mi dispiace {username}, ma il tuo username non è ancora registrato.",
                                       parse_mode='HTML')
-    # vedere le posizioni visitate
+    # visione delle posizioni visitate
     elif msg.startswith('get_data'):
         cmd, username = msg.split(' ')
         if username in data:
@@ -68,9 +69,14 @@ def process_location(update, context):
             data[username] = [location]
         lat = location.latitude
         lon = location.longitude
-        update.message.reply_text(f"Posizione condivisa da {username}: Latitudine {lat}, Longitudine {lon}")
+        i = 0
+        while i < 10:
+            update.message.reply_text(
+                f"Posizione {i+1} condivisa da {username} - Latitudine: {lat}, Longitudine: {lon}, Data: {datetime.now()}")
+            time.sleep(5)
+            i += 1
         # print sul terminale
-        print(f"{username} - lat: {lat}, lon: {lon}, data: {datetime.now()}")
+        print(f"Posizione {i+1} condivisa da {username} - Latitudine: {lat}, Longitudine: {lon}, Data: {datetime.now()}")
 
 
 def main():
